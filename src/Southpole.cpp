@@ -16,5 +16,12 @@ void init(rack::Plugin *p) {
 	p->manual = "https://github.com/gbrandt1/southpole-vcvrack/blob/master/README.md";
 
 	p->addModel(modelSmoke); 	
+	p->addModel(modelEspectro);
+	p->addModel(modelRitardo);
+	p->addModel(modelCamilla);
+	p->addModel(modelOliverb);
+	p->addModel(modelResonestor);
 	p->addModel(modelSplash); 	
+	p->addModel(modelTwoBumps);
+	p->addModel(modelTwoDrunks);
 }

@@ -216,34 +216,24 @@ void Splash::step() {
 }
 
 struct SplashWidget : ModuleWidget {
-	SVGPanel *panel0;
-	SVGPanel *panel1;
-	SVGPanel *panel2;
+	int currentPanelMode;
+
 	void step() override;
 	Menu *createContextMenu() override;
 
+	void setPanelToMode() {
+		if (currentPanelMode == tides::Generator::FEAT_MODE_HARMONIC)
+			setPanel(SVG::load(assetPlugin(plugin, "res/TwoBumps.svg")));
+		else if (currentPanelMode == tides::Generator::FEAT_MODE_RANDOM)
+			setPanel(SVG::load(assetPlugin(plugin, "res/TwoDrunks.svg")));
+		else
+			setPanel(SVG::load(assetPlugin(plugin, "res/Splash.svg")));
+	}
+
 	SplashWidget(Splash *module) : ModuleWidget(module) {
 
-	box.size = Vec(15 * 8, 380);
-
-  	{
-	  	panel0 = new SVGPanel();
-	  	panel0->setBackground(SVG::load(assetPlugin(plugin, "res/Splash.svg")));
-	  	panel0->box.size = box.size;
-	  	addChild(panel0);
-  	}
-  	{
-	  	panel1 = new SVGPanel();
-	  	panel1->setBackground(SVG::load(assetPlugin(plugin, "res/TwoBumps.svg")));
-	  	panel1->box.size = box.size;
-	  	addChild(panel1);
-  	}
-  	{
-	  	panel2 = new SVGPanel();
-	  	panel2->setBackground(SVG::load(assetPlugin(plugin, "res/TwoDrunks.svg")));
-	  	panel2->box.size = box.size;
-	  	addChild(panel2);
-  	}
+	currentPanelMode = module->generator.feature_mode_;
+	setPanelToMode();
 
   	const float x1 = 0.5*RACK_GRID_WIDTH;
   	const float x2 = 3.25*RACK_GRID_WIDTH;
@@ -252,12 +242,11 @@ struct SplashWidget : ModuleWidget {
   	const float y2 = 25.0f;
   	const float yh = 38.0f;
 
-
 	addParam(ParamWidget::create<CKD6>(Vec(x3-3,y1-3), module, Splash::MODE_PARAM, 0.0, 1.0, 0.0));
-	addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(x3+7, y1+7), module, Splash::MODE_GREEN_LIGHT));
+	addChild(ModuleLightWidget::create<LargeLight<GreenRedLight>>(Vec(x3+3.5, y1+3.5), module, Splash::MODE_GREEN_LIGHT));
 
 	addParam(ParamWidget::create<CKD6>(Vec(x3-3,y1+1.45*yh), module, Splash::RANGE_PARAM, 0.0, 1.0, 0.0));
-	addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(x3+7, y1+2*yh-10), module, Splash::RANGE_GREEN_LIGHT));
+	addChild(ModuleLightWidget::create<LargeLight<GreenRedLight>>(Vec(x3+3.5, y1+1.45*yh+6.5), module, Splash::RANGE_GREEN_LIGHT));
 
 	addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(x2-20, y2+2*yh), module, Splash::PHASE_GREEN_LIGHT));
 	addParam(ParamWidget::create<sp_BlackKnob>(Vec(x2-7,y2+1.75*yh), module, Splash::FREQUENCY_PARAM, -48.0, 48.0, 0.0));
@@ -289,29 +278,34 @@ struct SplashWidget : ModuleWidget {
 }
 };
 
-Model *modelSplash 	= Model::create<Splash,SplashWidget>(	 "Southpole Parasites", "Splash", 	"Splash / Lambs - tidal modulator", LFO_TAG, OSCILLATOR_TAG, WAVESHAPER_TAG, FUNCTION_GENERATOR_TAG);
+struct TwoBumps : Splash 
+{
+	TwoBumps() : Splash() {
+		generator.feature_mode_ = tides::Generator::FEAT_MODE_HARMONIC;
+	}
+};
+
+struct TwoDrunks : Splash 
+{
+	TwoDrunks() : Splash() {
+		generator.feature_mode_ = tides::Generator::FEAT_MODE_RANDOM;
+	}
+};
+
+Model *modelSplash 	= Model::create<Splash,SplashWidget>(	 "Southpole Parasites", "Splash", 	"Splash", LFO_TAG, OSCILLATOR_TAG, WAVESHAPER_TAG, FUNCTION_GENERATOR_TAG);
+Model *modelTwoBumps 	= Model::create<TwoBumps,SplashWidget>(	 "Southpole Parasites", "TwoBumps", 	"Two Bumps", LFO_TAG, OSCILLATOR_TAG, WAVESHAPER_TAG, FUNCTION_GENERATOR_TAG);
+Model *modelTwoDrunks 	= Model::create<TwoDrunks,SplashWidget>(	 "Southpole Parasites", "TwoDrunks", 	"Two Drunks", LFO_TAG, OSCILLATOR_TAG, WAVESHAPER_TAG, FUNCTION_GENERATOR_TAG);
 
 
 void SplashWidget::step() {
-	Splash *tides = dynamic_cast<Splash*>(module);
-	assert(tides);
+	Splash *tides = static_cast<Splash*>(module);
 
-	if (tides->generator.feature_mode_ == tides::Generator::FEAT_MODE_HARMONIC) {
+	if (tides->generator.feature_mode_ != currentPanelMode)
+	{
+		currentPanelMode = tides->generator.feature_mode_;
+		setPanelToMode();
+	}
 
-		panel0->visible = false;
-		panel1->visible = true;
-		panel2->visible = false;
-
-	} else
-	if (tides->generator.feature_mode_ == tides::Generator::FEAT_MODE_RANDOM) {
-		panel0->visible = false;
-		panel1->visible = false;
-		panel2->visible = true;
-	} else {
-		panel0->visible = true;
-		panel1->visible = false;
-		panel2->visible = false;		
-	}	
 	ModuleWidget::step();
 }
 
