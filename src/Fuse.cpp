@@ -193,7 +193,7 @@ struct FuseWidget : ModuleWidget {
 		for(int i = 0; i < 4; i++)
 		{
 			addParam(ParamWidget::create<LEDButton>(Vec(x1+1, y1 + i*yh-22), module, Fuse::SWITCH1_PARAM + 3 - i, 0.0, 1.0, 0.0));
-			addChild(ModuleLightWidget::create<MediumLight<YellowLight>>(Vec(x1+5, y1+ i*yh-18), module, Fuse::ARM1_LIGHT + 3 - i));
+			addChild(ModuleLightWidget::create<MediumLight<YellowLight>>(Vec(x1+5.5, y1+ i*yh-17.5), module, Fuse::ARM1_LIGHT + 3 - i));
 			addInput(Port::create<sp_Port>(Vec(x1, y1 + i*yh-45), Port::INPUT, module, Fuse::ARM1_INPUT + 3 - i));
 			addOutput(Port::create<sp_Port>(Vec(x1, y1 + i*yh), Port::OUTPUT, module, Fuse::OUT1_OUTPUT + 3 - i));
 		}
@@ -242,4 +242,4 @@ Menu *FuseWidget::createContextMenu() {
 	return menu;
 }
 
-Model *modelFuse 	= Model::create<Fuse,FuseWidget>(	 "Southpole", "Fuse", 		"Fuse - next pattern", SEQUENCER_TAG);
+Model *modelFuse 	= Model::create<Fuse,FuseWidget>(	 "Southpole", "Fuse", 		"Fuse", SEQUENCER_TAG);

@@ -6,9 +6,14 @@ using namespace rack;
 extern Plugin *plugin;
 
 extern Model *modelSmoke;
+extern Model *modelEspectro;
+extern Model *modelRitardo;
+extern Model *modelCamilla;
 extern Model *modelAnnuli;
+extern Model *modelDisastrousPeace;
 extern Model *modelCornrowsX;
 extern Model *modelSplash;
+extern Model *modelLambs;
 
 extern Model *modelAbr;
 extern Model *modelAux;

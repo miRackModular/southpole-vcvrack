@@ -589,10 +589,11 @@ Menu *CornrowsXWidget::createContextMenu() {
 	menu->addChild(construct<CornrowsXSettingItem>(&MenuItem::text, "FLAT", &CornrowsXSettingItem::setting, &braids->settings.vco_flatten, &CornrowsXSettingItem::onValue, 4));
 	menu->addChild(construct<CornrowsXSettingItem>(&MenuItem::text, "DRFT", &CornrowsXSettingItem::setting, &braids->settings.vco_drift, &CornrowsXSettingItem::onValue, 4));
 	menu->addChild(construct<CornrowsXSettingItem>(&MenuItem::text, "SIGN", &CornrowsXSettingItem::setting, &braids->settings.signature, &CornrowsXSettingItem::onValue, 4));
+	menu->addChild(construct<MenuLabel>());
 	menu->addChild(construct<CornrowsXLowCpuItem>(&MenuItem::text, "Low CPU", &CornrowsXLowCpuItem::braids, braids));
 	menu->addChild(construct<CornrowsXPaquesItem>(&MenuItem::text, "Paques",  &CornrowsXPaquesItem::braids, braids));
 
 	return menu;
 }
 
-Model *modelCornrowsX = Model::create<CornrowsX,CornrowsXWidget>("Southpole", "CornrowsX", 	"CornrowsX - macro osc", OSCILLATOR_TAG, WAVESHAPER_TAG);
+Model *modelCornrowsX = Model::create<CornrowsX,CornrowsXWidget>("Southpole", "CornrowsX", 	"CornrowsX", OSCILLATOR_TAG, WAVESHAPER_TAG);

@@ -26,6 +26,7 @@ void init(rack::Plugin *p) {
 
 		p->addModel(modelAbr 	);
 		p->addModel(modelAnnuli );	
+		p->addModel(modelDisastrousPeace);
 		p->addModel(modelAux 	);
 		p->addModel(modelBalaclava );
 		p->addModel(modelBandana );
@@ -48,9 +49,13 @@ void init(rack::Plugin *p) {
 		p->addModel(modelRakes 	);
 		p->addModel(modelRiemann); 
 		p->addModel(modelSmoke); 	
+		p->addModel(modelEspectro);
+		p->addModel(modelRitardo);
+		p->addModel(modelCamilla);
 		p->addModel(modelSnake); 	
 		p->addModel(modelSns);
 		p->addModel(modelSplash); 	
+		p->addModel(modelLambs); 	
 		p->addModel(modelSssh); 	
 		p->addModel(modelWriggle);
 }

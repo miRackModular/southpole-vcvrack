@@ -183,28 +183,9 @@ void Etagere::step() {
 
 struct EtagereWidget : ModuleWidget { 
 
-	SVGPanel *blancPanel;
-	SVGPanel *noirPanel;	
-
-	void step() override;
-	Menu *createContextMenu() override;
-
     EtagereWidget(Etagere *module)  : ModuleWidget(module) {
 
-        box.size = Vec(15*6, 380);
-
-        {
-            noirPanel = new SVGPanel();
-            noirPanel->setBackground(SVG::load(assetPlugin(plugin, "res/Etagere.svg")));
-            noirPanel->box.size = box.size;
-            addChild(noirPanel);	
-        }
-        {
-            blancPanel = new SVGPanel();
-            blancPanel->setBackground(SVG::load(assetPlugin(plugin, "res/Etagere_blanc.svg")));
-            blancPanel->box.size = box.size;
-            addChild(blancPanel);	
-        }
+        setPanel(SVG::load(assetPlugin(plugin, "res/Etagere.svg")));
 
         const float x1 = 8;
         const float x15 = 32;
@@ -260,32 +241,4 @@ struct EtagereWidget : ModuleWidget {
     }
 };
 
-void EtagereWidget::step() {
-	Etagere *m = dynamic_cast<Etagere*>(module);
-	assert(m);
-	blancPanel->visible = !m->blanc;
-	noirPanel->visible = m->blanc;
-	ModuleWidget::step();
-}
-
-struct EtagereBlancItem : MenuItem {
-	Etagere *m;
-	void onAction(EventAction &e) override {
-		m->blanc ^= true;
-	}
-	void step() override {
-		rightText = (!m->blanc) ? "✔" : "";
-		MenuItem::step();
-	}
-};
-
-Menu *EtagereWidget::createContextMenu() {
-	Menu *menu = ModuleWidget::createContextMenu();
-	Etagere *m = dynamic_cast<Etagere*>(module);
-	assert(m);
-	menu->addChild(construct<MenuLabel>());
-	menu->addChild(construct<EtagereBlancItem>(&MenuItem::text, "blanc", &EtagereBlancItem::m, m));
-	return menu;
-}
-
-Model *modelEtagere = Model::create<Etagere,EtagereWidget>(	 "Southpole", "Etagere", 	"Etagere - EQ", FILTER_TAG);
+Model *modelEtagere = Model::create<Etagere,EtagereWidget>(	 "Southpole", "Etagere", 	"Etagere", FILTER_TAG);

@@ -249,26 +249,22 @@ void Annuli::step() {
 }
 
 struct AnnuliWidget : ModuleWidget {
-	SVGPanel *panel;
-	SVGPanel *panel2;
 	void step() override;
 	Menu *createContextMenu() override;
+	int currentPanelMode;
+
+	void setPanelToMode() {
+		if (currentPanelMode)
+			setPanel(SVG::load(assetPlugin(plugin, "res/DisastrousPeace.svg")));
+		else
+			setPanel(SVG::load(assetPlugin(plugin, "res/Annuli.svg")));
+	}	
 
 	AnnuliWidget(Annuli *module) : ModuleWidget(module) {
 
-		box.size = Vec(15*6, 380);
-		{
-			panel = new SVGPanel();
-			panel->setBackground(SVG::load(assetPlugin(plugin, "res/Annuli.svg")));
-			panel->box.size = box.size;
-			addChild(panel);
-		}
-		{
-			panel2 = new SVGPanel();
-			panel2->setBackground(SVG::load(assetPlugin(plugin, "res/DisastrousPeace.svg")));
-			panel2->box.size = box.size;
-			addChild(panel2);		
-		}
+		currentPanelMode = module->easterEgg;
+		setPanelToMode();
+
 		const float x1 = 5;
 		const float x2 = 35;
 		const float x3 = 65;
@@ -309,11 +305,13 @@ struct AnnuliWidget : ModuleWidget {
 	}
 };
 void AnnuliWidget::step() {
-	Annuli *annuli = dynamic_cast<Annuli*>(module);
-	assert(annuli);
+	Annuli *rings = static_cast<Annuli*>(module);
 
-	panel->visible  =  !annuli->easterEgg;
-	panel2->visible =  annuli->easterEgg;
+	if (rings->easterEgg != currentPanelMode)
+ 	{
+    	currentPanelMode = rings->easterEgg;
+    	setPanelToMode();
+  	}
 
 	ModuleWidget::step();
 }
@@ -347,8 +345,8 @@ Menu *AnnuliWidget::createContextMenu() {
 	Annuli *rings = dynamic_cast<Annuli*>(module);
 	assert(rings);
 
-	menu->addChild(construct<MenuItem>());
-	menu->addChild(construct<MenuItem>(&MenuItem::text, "Resonator"));
+	menu->addChild(construct<MenuLabel>());
+	menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Resonator"));
 	menu->addChild(construct<AnnuliModelItem>(&MenuItem::text, "Modal resonator", &AnnuliModelItem::rings, rings, &AnnuliModelItem::model, rings::RESONATOR_MODEL_MODAL));
 	menu->addChild(construct<AnnuliModelItem>(&MenuItem::text, "Sympathetic strings", &AnnuliModelItem::rings, rings, &AnnuliModelItem::model, rings::RESONATOR_MODEL_SYMPATHETIC_STRING));
 	menu->addChild(construct<AnnuliModelItem>(&MenuItem::text, "Modulated/inharmonic string", &AnnuliModelItem::rings, rings, &AnnuliModelItem::model, rings::RESONATOR_MODEL_STRING));
@@ -356,10 +354,17 @@ Menu *AnnuliWidget::createContextMenu() {
 	menu->addChild(construct<AnnuliModelItem>(&MenuItem::text, "Quantized sympathetic strings", &AnnuliModelItem::rings, rings, &AnnuliModelItem::model, rings::RESONATOR_MODEL_SYMPATHETIC_STRING_QUANTIZED));
 	menu->addChild(construct<AnnuliModelItem>(&MenuItem::text, "Reverb string", &AnnuliModelItem::rings, rings, &AnnuliModelItem::model, rings::RESONATOR_MODEL_STRING_AND_REVERB));
 
-	menu->addChild(construct<MenuItem>());
+	menu->addChild(construct<MenuLabel>());
 	menu->addChild(construct<AnnuliEasterEggItem>(&MenuItem::text, "Disastrous Peace", &AnnuliEasterEggItem::rings, rings));
 
 	return menu;
 }
 
-Model *modelAnnuli 	= Model::create<Annuli,AnnuliWidget>( 	 "Southpole", "Annuli", "Annuli - resonator", SYNTH_VOICE_TAG, OSCILLATOR_TAG);
+struct DisastrousPeace : Annuli {
+	DisastrousPeace() : Annuli() {
+		easterEgg = true;
+	}
+};
+
+Model *modelAnnuli 	= Model::create<Annuli,AnnuliWidget>( 	 "Southpole", "Annuli", "Annuli", SYNTH_VOICE_TAG, OSCILLATOR_TAG);
+Model *modelDisastrousPeace = Model::create<DisastrousPeace,AnnuliWidget>( 	 "Southpole", "DisastrousPeace", "Disastrous Peace", SYNTH_VOICE_TAG, OSCILLATOR_TAG);

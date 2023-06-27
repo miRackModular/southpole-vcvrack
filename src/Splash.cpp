@@ -202,27 +202,15 @@ void Splash::step() {
 }
 
 struct SplashWidget : ModuleWidget {
-	SVGPanel *tidesPanel;
-	SVGPanel *sheepPanel;
+	bool currentPanelIsLambs;
 	void step() override;
 	Menu *createContextMenu() override;
 
 	SplashWidget(Splash *module) : ModuleWidget(module) {
 
-		box.size = Vec(15 * 8, 380);
+		currentPanelIsLambs = module->sheep;
+		setPanel(SVG::load(assetPlugin(plugin, currentPanelIsLambs ? "res/Lambs.svg" : "res/Splash.svg")));
 
-		{
-			tidesPanel = new SVGPanel();
-			tidesPanel->setBackground(SVG::load(assetPlugin(plugin, "res/Splash.svg")));
-			tidesPanel->box.size = box.size;
-			addChild(tidesPanel);
-		}
-		{
-			sheepPanel = new SVGPanel();
-			sheepPanel->setBackground(SVG::load(assetPlugin(plugin, "res/Lambs.svg")));
-			sheepPanel->box.size = box.size;
-			addChild(sheepPanel);
-		}
 		const float x1 = 0.5*RACK_GRID_WIDTH;
 		const float x2 = 3.25*RACK_GRID_WIDTH;
 		const float x3 = 5.75*RACK_GRID_WIDTH; 
@@ -232,10 +220,10 @@ struct SplashWidget : ModuleWidget {
 
 
 		addParam(ParamWidget::create<CKD6>(Vec(x3-3,y1-3), module, Splash::MODE_PARAM, 0.0, 1.0, 0.0));
-		addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(x3+7, y1+7), module, Splash::MODE_GREEN_LIGHT));
+		addChild(ModuleLightWidget::create<LargeLight<GreenRedLight>>(Vec(x3+3.5, y1+3.5), module, Splash::MODE_GREEN_LIGHT));
 
 		addParam(ParamWidget::create<CKD6>(Vec(x3-3,y1+1.45*yh), module, Splash::RANGE_PARAM, 0.0, 1.0, 0.0));
-		addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(x3+7, y1+2*yh-10), module, Splash::RANGE_GREEN_LIGHT));
+		addChild(ModuleLightWidget::create<LargeLight<GreenRedLight>>(Vec(x3+3.5, y1+1.45*yh+6.5), module, Splash::RANGE_GREEN_LIGHT));
 
 		addChild(ModuleLightWidget::create<MediumLight<GreenRedLight>>(Vec(x2-20, y2+2*yh), module, Splash::PHASE_GREEN_LIGHT));
 		addParam(ParamWidget::create<sp_BlackKnob>(Vec(x2-7,y2+1.75*yh), module, Splash::FREQUENCY_PARAM, -48.0, 48.0, 0.0));
@@ -267,15 +255,30 @@ struct SplashWidget : ModuleWidget {
 	}
 };
 
-Model *modelSplash 	= Model::create<Splash,SplashWidget>(	 "Southpole", "Splash", 	"Splash / Lambs - tidal modulator", LFO_TAG, OSCILLATOR_TAG, WAVESHAPER_TAG, FUNCTION_GENERATOR_TAG);
+struct Lambs : Splash
+{
+	Lambs() : Splash()
+	{
+		sheep = true;
+	}
+};
+
+Model *modelSplash 	= Model::create<Splash,SplashWidget>(	 "Southpole", "Splash", 	"Splash", LFO_TAG, OSCILLATOR_TAG, WAVESHAPER_TAG, FUNCTION_GENERATOR_TAG);
+Model *modelLambs	= Model::create<Lambs,SplashWidget>(	 "Southpole", "Lambs", 	"Lambs", LFO_TAG, OSCILLATOR_TAG, WAVESHAPER_TAG, FUNCTION_GENERATOR_TAG);
 
 
 void SplashWidget::step() {
-	Splash *tides = dynamic_cast<Splash*>(module);
-	assert(tides);
+	Splash *tides = static_cast<Splash*>(module);
 
-	tidesPanel->visible = !tides->sheep;
-	sheepPanel->visible = tides->sheep;
+	if (tides->sheep != currentPanelIsLambs)
+	{
+		currentPanelIsLambs = tides->sheep;
+
+		if (currentPanelIsLambs)
+			dynamic_cast<SVGPanel*>(panel)->setBackground(SVG::load(assetPlugin(plugin, "res/Lambs.svg")));
+		else
+			dynamic_cast<SVGPanel*>(panel)->setBackground(SVG::load(assetPlugin(plugin, "res/Splash.svg")));
+	}
 
 	ModuleWidget::step();
 }

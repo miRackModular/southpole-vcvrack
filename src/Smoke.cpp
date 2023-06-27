@@ -278,84 +278,26 @@ void Smoke::step() {
 
 
 struct SmokeWidget : ModuleWidget {
-	SVGPanel *panel1;
-	SVGPanel *panel2;
-	SVGPanel *panel3;
-	SVGPanel *panel4;
-	SVGPanel *panel5;
-	SVGPanel *panel6;	
+  int currentPanelMode;
 	void step() override;
 	Menu *createContextMenu() override;
+
+  void setPanelToMode() {
+    if (currentPanelMode == clouds::PLAYBACK_MODE_SPECTRAL)
+      setPanel(SVG::load(assetPlugin(plugin, "res/Espectro.svg")));
+    else if (currentPanelMode == clouds::PLAYBACK_MODE_LOOPING_DELAY)
+      setPanel(SVG::load(assetPlugin(plugin, "res/Ritardo.svg")));
+    else if (currentPanelMode == clouds::PLAYBACK_MODE_STRETCH)
+      setPanel(SVG::load(assetPlugin(plugin, "res/Camilla.svg")));
+    else
+      setPanel(SVG::load(assetPlugin(plugin, "res/Smoke.svg")));    
+  }
 
 
   SmokeWidget(Smoke *module) : ModuleWidget(module) {
  
-    box.size = Vec(6* RACK_GRID_WIDTH, RACK_GRID_HEIGHT);
-
-  #ifdef PARASITES
-    {
-      panel1 = new SVGPanel();
-      panel1->setBackground(SVG::load(assetPlugin(plugin, "res/Smoke-parasite.svg")));
-      panel1->box.size = box.size;
-      addChild(panel1);
-    }
-    {
-      panel2 = new SVGPanel();
-      panel2->setBackground(SVG::load(assetPlugin(plugin, "res/Espectro-parasite.svg")));
-      panel2->box.size = box.size;
-      addChild(panel2);
-    }
-    {
-      panel3 = new SVGPanel();
-      panel3->setBackground(SVG::load(assetPlugin(plugin, "res/Ritardo-parasite.svg")));
-      panel3->box.size = box.size;
-      addChild(panel3);
-    }
-    {
-      panel4 = new SVGPanel();
-      panel4->setBackground(SVG::load(assetPlugin(plugin, "res/Camilla-parasite.svg")));
-      panel4->box.size = box.size;
-      addChild(panel4);
-    }
-    {
-      panel5 = new SVGPanel();
-      panel5->setBackground(SVG::load(assetPlugin(plugin, "res/Oliverb.svg")));
-      panel5->box.size = box.size;
-      addChild(panel5);
-    }
-    {
-      panel6 = new SVGPanel();
-      panel6->setBackground(SVG::load(assetPlugin(plugin, "res/Resonestor.svg")));
-      panel6->box.size = box.size;
-      addChild(panel6);
-    }
-    
-  #else
-    {
-      panel1 = new SVGPanel();
-      panel1->setBackground(SVG::load(assetPlugin(plugin, "res/Smoke.svg")));
-      panel1->box.size = box.size;
-      addChild(panel1);
-    }
-    {
-      panel2 = new SVGPanel();
-      panel2->setBackground(SVG::load(assetPlugin(plugin, "res/Espectro.svg")));
-      panel2->box.size = box.size;
-      addChild(panel2);
-    }
-    {
-      panel3 = new SVGPanel();
-      panel3->setBackground(SVG::load(assetPlugin(plugin, "res/Ritardo.svg")));
-      panel3->box.size = box.size;
-      addChild(panel3);
-    }
-    {
-      panel4 = new SVGPanel();
-      panel4->setBackground(SVG::load(assetPlugin(plugin, "res/Camilla.svg")));
-      panel4->box.size = box.size;
-      addChild(panel4);
-    }
-  #endif
+    currentPanelMode = module->playbackmode;
+    setPanelToMode();
 
     const float x1 = 5;
     const float x2 = 35;
@@ -420,41 +362,15 @@ struct SmokeWidget : ModuleWidget {
 };
 
 void SmokeWidget::step() {
-	Smoke *smoke = dynamic_cast<Smoke*>(module);
-	assert(smoke);
+  Smoke *smoke = static_cast<Smoke*>(module);
 
-	panel1->visible = true;
-	panel2->visible = false;
-	panel3->visible = false;
-	panel4->visible = false;
-  #ifdef PARASITES
-    panel5->visible = false;
-    panel6->visible = false;
-  #endif
-  if ( smoke->playbackmode == clouds::PLAYBACK_MODE_SPECTRAL) {
-    panel1->visible = false;
-    panel2->visible = true;
+  if (smoke->playbackmode != currentPanelMode)
+  {
+    currentPanelMode = smoke->playbackmode;
+    setPanelToMode();
   }
-  if ( smoke->playbackmode == clouds::PLAYBACK_MODE_LOOPING_DELAY) {
-    panel1->visible = false;
-    panel3->visible = true;
-  }
-  if ( smoke->playbackmode == clouds::PLAYBACK_MODE_STRETCH) {
-    panel1->visible = false;
-    panel4->visible = true;
-  }
-  #ifdef PARASITES
-    if ( smoke->playbackmode == clouds::PLAYBACK_MODE_OLIVERB) {
-      panel1->visible = false;
-      panel5->visible = true;    
-    }
-    if ( smoke->playbackmode == clouds::PLAYBACK_MODE_RESONESTOR) {
-      panel1->visible = false;
-      panel6->visible = true;
-    }
-  #endif
 
-	ModuleWidget::step();
+  ModuleWidget::step();
 }
 
 struct CloudsModeItem : MenuItem {
@@ -516,35 +432,56 @@ Menu *SmokeWidget::createContextMenu() {
 
 
   menu->addChild(construct<MenuLabel>());
-  menu->addChild(construct<MenuLabel>(&MenuLabel::text, "MODE"));
-  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "GRANULAR", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_GRANULAR));
-  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "SPECTRAL", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_SPECTRAL));
-  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "LOOPING_DELAY", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_LOOPING_DELAY));
-  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "STRETCH", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_STRETCH));
+  menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Mode"));
+  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "Granular", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_GRANULAR));
+  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "Spectral", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_SPECTRAL));
+  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "Looping Delay", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_LOOPING_DELAY));
+  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "Stretch", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_STRETCH));
 #ifdef PARASITES  
-  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "OLIVERB", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_OLIVERB));
-  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "RESONESTOR", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_RESONESTOR));
+  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "Oliverb", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_OLIVERB));
+  menu->addChild(construct<CloudsModeItem>(&MenuItem::text, "Resonestor", &CloudsModeItem::clouds, clouds, &CloudsModeItem::mode, clouds::PLAYBACK_MODE_RESONESTOR));
 #endif     
-  menu->addChild(construct<MenuItem>(&MenuItem::text, "STEREO/MONO"));
-  menu->addChild(construct<CloudsMonoItem>(&MenuItem::text, "STEREO", &CloudsMonoItem::clouds, clouds, &CloudsMonoItem::setting, false));
-  menu->addChild(construct<CloudsMonoItem>(&MenuItem::text, "MONO", &CloudsMonoItem::clouds, clouds, &CloudsMonoItem::setting, true));  
+  menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Channels"));
+  menu->addChild(construct<CloudsMonoItem>(&MenuItem::text, "Stereo", &CloudsMonoItem::clouds, clouds, &CloudsMonoItem::setting, false));
+  menu->addChild(construct<CloudsMonoItem>(&MenuItem::text, "Mono", &CloudsMonoItem::clouds, clouds, &CloudsMonoItem::setting, true));  
   
-  menu->addChild(construct<MenuItem>(&MenuItem::text, "HIFI/LOFI"));
-  menu->addChild(construct<CloudsLofiItem>(&MenuItem::text, "HIFI", &CloudsLofiItem::clouds, clouds, &CloudsLofiItem::setting, false));
-  menu->addChild(construct<CloudsLofiItem>(&MenuItem::text, "LOFI", &CloudsLofiItem::clouds, clouds, &CloudsLofiItem::setting, true));  
+  menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Quality"));
+  menu->addChild(construct<CloudsLofiItem>(&MenuItem::text, "Hi-fi", &CloudsLofiItem::clouds, clouds, &CloudsLofiItem::setting, false));
+  menu->addChild(construct<CloudsLofiItem>(&MenuItem::text, "Lo-fi", &CloudsLofiItem::clouds, clouds, &CloudsLofiItem::setting, true));  
   
 #ifdef BUFFERRESIZING
 // disable by default as it seems to make alternative modes unstable
-  menu->addChild(construct<MenuItem>(&MenuItem::text, "BUFFER SIZE (EXPERIMENTAL)"));
-  menu->addChild(construct<CloudsBufferItem>(&MenuItem::text, "ORIGINAL", &CloudsBufferItem::clouds, clouds, &CloudsBufferItem::setting, 1));
-  menu->addChild(construct<CloudsBufferItem>(&MenuItem::text, "2X", &CloudsBufferItem::clouds, clouds, &CloudsBufferItem::setting, 2));
-  menu->addChild(construct<CloudsBufferItem>(&MenuItem::text, "4X", &CloudsBufferItem::clouds, clouds, &CloudsBufferItem::setting, 4));
-  menu->addChild(construct<CloudsBufferItem>(&MenuItem::text, "8X", &CloudsBufferItem::clouds, clouds, &CloudsBufferItem::setting, 8));
+  menu->addChild(construct<MenuLabel>(&MenuLabel::text, "Buffer Size (Experimental)"));
+  menu->addChild(construct<CloudsBufferItem>(&MenuItem::text, "Original", &CloudsBufferItem::clouds, clouds, &CloudsBufferItem::setting, 1));
+  menu->addChild(construct<CloudsBufferItem>(&MenuItem::text, "2x", &CloudsBufferItem::clouds, clouds, &CloudsBufferItem::setting, 2));
+  menu->addChild(construct<CloudsBufferItem>(&MenuItem::text, "4x", &CloudsBufferItem::clouds, clouds, &CloudsBufferItem::setting, 4));
+  menu->addChild(construct<CloudsBufferItem>(&MenuItem::text, "8x", &CloudsBufferItem::clouds, clouds, &CloudsBufferItem::setting, 8));
 #endif  
     
   return menu;
 }
 
-Model *modelSmoke 	= Model::create<Smoke,SmokeWidget>( 	 "Southpole", "Smoke", 		"Smoke - texture synth", GRANULAR_TAG, REVERB_TAG);
+struct Espectro : Smoke {
+  Espectro() : Smoke() {
+    playbackmode = clouds::PLAYBACK_MODE_SPECTRAL;
+  }
+};
+
+struct Ritardo : Smoke {
+  Ritardo() : Smoke() {
+    playbackmode = clouds::PLAYBACK_MODE_LOOPING_DELAY;
+  }
+};
+
+struct Camilla : Smoke {
+  Camilla() : Smoke() {
+    playbackmode = clouds::PLAYBACK_MODE_STRETCH;
+  }
+};
+
+Model *modelSmoke 	= Model::create<Smoke,SmokeWidget>( 	 "Southpole", "Smoke", 		"Smoke", GRANULAR_TAG, REVERB_TAG);
+Model *modelEspectro   = Model::create<Espectro,SmokeWidget>(    "Southpole", "Espectro",    "Espectro", GRANULAR_TAG, REVERB_TAG);
+Model *modelRitardo   = Model::create<Ritardo,SmokeWidget>(    "Southpole", "Ritardo",    "Ritardo", GRANULAR_TAG, REVERB_TAG);
+Model *modelCamilla   = Model::create<Camilla,SmokeWidget>(    "Southpole", "Camilla",    "Camilla", GRANULAR_TAG, REVERB_TAG);
 
 
